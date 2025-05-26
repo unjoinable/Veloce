@@ -3,10 +3,10 @@ package entity
 type GameMode byte
 
 const (
-	Survival  GameMode = 0
-	Creative  GameMode = 1
-	Adventure GameMode = 2
-	Spectator GameMode = 3
+	Survival GameMode = iota
+	Creative
+	Adventure
+	Spectator
 )
 
 func (gm GameMode) ID() byte {

@@ -17,3 +17,14 @@ func (p *ClientBoundKnownPacksPacket) Write(buf *network.Buffer) {
 	fmt.Println("Write ClientBoundKnownPacksPacket")
 	buf.WriteByte(0)
 }
+
+type FinishConfigurationPacket struct { /*No Fields*/
+}
+
+func (p *FinishConfigurationPacket) ID() int32 {
+	return 0x03
+}
+
+func (p *FinishConfigurationPacket) Write(*network.Buffer) {
+	fmt.Println("Write FinishConfigurationPacket")
+}

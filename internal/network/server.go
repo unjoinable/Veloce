@@ -9,26 +9,18 @@ import (
 	"time"
 )
 
-// TCPServer represents a high-performance TCP server for Minecraft
+// TCPServer represents a simplified TCP server for Minecraft
 type TCPServer struct {
 	listener    net.Listener
 	addr        string
 	running     atomic.Bool
-	wg          sync.WaitGroup
-	bufferPool  sync.Pool
 	connections sync.Map
-	connCount   atomic.Int64
-	maxConns    int
 }
 
-// NewTCPServer creates a new high-performance TCP server
-func NewTCPServer(addr string, maxConns int) *TCPServer {
+// NewTCPServer creates a new simplified TCP server
+func NewTCPServer(addr string) *TCPServer {
 	return &TCPServer{
-		addr:     addr,
-		maxConns: maxConns,
-		bufferPool: sync.Pool{
-			New: func() interface{} { return make([]byte, 8192) },
-		},
+		addr: addr,
 	}
 }
 
@@ -52,13 +44,6 @@ func (s *TCPServer) Start() error {
 			continue
 		}
 
-		if s.connCount.Load() >= int64(s.maxConns) {
-			conn.Close()
-			continue
-		}
-
-		s.connCount.Add(1)
-		s.wg.Add(1)
 		go s.handleConnection(conn)
 	}
 	return nil
@@ -66,19 +51,12 @@ func (s *TCPServer) Start() error {
 
 // handleConnection processes a single client connection
 func (s *TCPServer) handleConnection(conn net.Conn) {
-	defer func() {
-		s.wg.Done()
-		s.connCount.Add(-1)
-		conn.Close()
-	}()
+	defer conn.Close()
 
 	pc := NewPlayerConnection(conn)
 	connID := fmt.Sprintf("%s-%d", conn.RemoteAddr(), time.Now().UnixNano())
 	s.connections.Store(connID, pc)
 	defer s.connections.Delete(connID)
-
-	tempBuffer := s.bufferPool.Get().([]byte)
-	defer s.bufferPool.Put(tempBuffer)
 
 	for s.running.Load() {
 		packetData, err := s.readPacket(conn)
@@ -139,11 +117,5 @@ func (s *TCPServer) Close() error {
 		return true
 	})
 
-	s.wg.Wait()
 	return nil
-}
-
-// GetConnectionCount returns the current number of active connections
-func (s *TCPServer) GetConnectionCount() int {
-	return int(s.connCount.Load())
 }

@@ -27,4 +27,9 @@ func RegisterAllPackets() {
 	network.GlobalPacketRegistry.RegisterServerBound(network.Login, 0x03, func() network.ServerboundPacket {
 		return &serverbound.LoginAcknowledgedPacket{}
 	})
+
+	// Configuration State serverbound packets
+	network.GlobalPacketRegistry.RegisterServerBound(network.Configuration, 0x03, func() network.ServerboundPacket {
+		return &serverbound.AcknowledgeFinishConfigurationPacket{}
+	})
 }

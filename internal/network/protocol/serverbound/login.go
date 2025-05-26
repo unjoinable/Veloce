@@ -43,4 +43,7 @@ func (p *LoginAcknowledgedPacket) Handle(pc *network.PlayerConnection) {
 	pc.SetState(network.Configuration)
 	packet := &clientbound.ClientBoundKnownPacksPacket{}
 	pc.SendPacket(packet)
+
+	packet2 := &clientbound.FinishConfigurationPacket{}
+	pc.SendPacket(packet2)
 }
