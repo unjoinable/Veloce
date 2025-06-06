@@ -1,11 +1,11 @@
-package clientbound
+package status
 
 import (
-	"Veloce/internal/network"
+	"Veloce/internal/network/buffer"
 	"fmt"
 )
 
-const JSON_EXAMPLE = `{
+const JsonExample = `{
     "version": {
         "name": "1.21.5",
         "protocol": 770
@@ -28,27 +28,14 @@ const JSON_EXAMPLE = `{
 }`
 
 // StatusResponsePacket represents a status response to a StatusRequestPacket
-type StatusResponsePacket struct{}
+type StatusResponsePacket struct { /*No fields Atm*/
+}
 
 func (p *StatusResponsePacket) ID() int32 {
 	return 0x00
 }
 
-func (p *StatusResponsePacket) Write(buf *network.Buffer) {
+func (p *StatusResponsePacket) Write(buf *buffer.Buffer) {
 	fmt.Println("Write StatusResponsePacket")
-	buf.WriteString(JSON_EXAMPLE)
-}
-
-// PongPacket represents a pong response to a ping request
-type PongPacket struct {
-	Number int64
-}
-
-func (p *PongPacket) ID() int32 {
-	return 0x01
-}
-
-func (p *PongPacket) Write(buf *network.Buffer) {
-	fmt.Println("Write PongPacket")
-	buf.WriteInt64(p.Number)
+	buf.WriteString(JsonExample)
 }

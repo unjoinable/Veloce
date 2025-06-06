@@ -1,20 +1,20 @@
-package clientbound
+package login
 
 import (
-	"Veloce/internal/entity"
-	"Veloce/internal/network"
+	"Veloce/internal/entity/player"
+	"Veloce/internal/network/buffer"
 	"fmt"
 )
 
 type LoginSuccessPacket struct {
-	GameProfile entity.GameProfile
+	GameProfile player.GameProfile
 }
 
 func (p *LoginSuccessPacket) ID() int32 {
 	return 0x02
 }
 
-func (p *LoginSuccessPacket) Write(buf *network.Buffer) {
+func (p *LoginSuccessPacket) Write(buf *buffer.Buffer) {
 	fmt.Println("Write LoginSuccessPacket")
 	buf.WriteUUID(p.GameProfile.UUID)
 	buf.WriteString(p.GameProfile.Name)

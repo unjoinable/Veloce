@@ -1,4 +1,4 @@
-package network
+package buffer
 
 import (
 	"encoding/binary"
@@ -394,6 +394,52 @@ func (b *Buffer) ReadString() (string, error) {
 		return "", err
 	}
 	return string(data), nil
+}
+
+// WritePrefixedStringArray writes an array of strings prefixed by its length as a VarInt.
+// The format is: [VarInt length][String 1][String 2]...[String N]
+// Each string is encoded using WriteString (VarInt length + UTF-8 data).
+// Even if the array is empty, the length (0) will still be encoded.
+func (b *Buffer) WritePrefixedStringArray(arr []string) error {
+	if err := b.WriteVarInt(int32(len(arr))); err != nil {
+		return err
+	}
+
+	for _, s := range arr {
+		if err := b.WriteString(s); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ReadPrefixedStringArray reads an array of strings prefixed by its length as a VarInt.
+// The format is: [VarInt length][String 1][String 2]...[String N]
+// Each string is decoded using ReadString (VarInt length + UTF-8 data).
+// Returns an empty slice if the encoded length is 0.
+func (b *Buffer) ReadPrefixedStringArray() ([]string, error) {
+	// Read array length as VarInt
+	length, err := b.ReadVarInt()
+	if err != nil {
+		return nil, err
+	}
+
+	if length < 0 {
+		return nil, ErrNegativeLength
+	}
+
+	arr := make([]string, length)
+
+	for i := int32(0); i < length; i++ {
+		s, err := b.ReadString()
+		if err != nil {
+			return nil, err
+		}
+		arr[i] = s
+	}
+
+	return arr, nil
 }
 
 // WriteUUID writes a UUID as 16 bytes in its canonical binary representation.

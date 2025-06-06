@@ -1,6 +1,7 @@
 package network
 
 import (
+	"Veloce/internal/network/buffer"
 	"fmt"
 	"net"
 	"sync"
@@ -23,7 +24,7 @@ func NewPlayerConnection(conn net.Conn) *PlayerConnection {
 }
 
 // HandlePacket processes incoming packets
-func (pc *PlayerConnection) HandlePacket(buf *Buffer) error {
+func (pc *PlayerConnection) HandlePacket(buf *buffer.Buffer) error {
 	pc.mu.RLock()
 	currentState := pc.state
 	pc.mu.RUnlock()
@@ -61,10 +62,10 @@ func (pc *PlayerConnection) SendPacket(p ClientboundPacket) error {
 		return err
 	}
 
-	buf := NewBuffer(nil)
+	buf := buffer.NewBuffer(nil)
 	p.Write(buf)
 
-	buffer := NewBuffer(nil)
+	buffer := buffer.NewBuffer(nil)
 	buffer.WriteVarInt(int32(buf.Len() + 1))
 	buffer.WriteVarInt(p.ID())
 	buffer.WriteBytes(buf.Data())

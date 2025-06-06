@@ -1,4 +1,4 @@
-package entity
+package player
 
 import (
 	"github.com/google/uuid"

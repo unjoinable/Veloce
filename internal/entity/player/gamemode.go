@@ -1,4 +1,4 @@
-package entity
+package player
 
 type GameMode byte
 

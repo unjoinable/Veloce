@@ -1,7 +1,8 @@
-package serverbound
+package configuration
 
 import (
 	"Veloce/internal/network"
+	"Veloce/internal/network/buffer"
 	"fmt"
 )
 
@@ -12,7 +13,7 @@ func (p *AcknowledgeFinishConfigurationPacket) ID() int32 {
 	return 0x03
 }
 
-func (p *AcknowledgeFinishConfigurationPacket) Read(*network.Buffer) {
+func (p *AcknowledgeFinishConfigurationPacket) Read(*buffer.Buffer) {
 	fmt.Println("Write AcknowledgeFinishConfigurationPacket")
 }
 

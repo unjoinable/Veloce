@@ -1,6 +1,7 @@
 package network
 
 import (
+	buffer2 "Veloce/internal/network/buffer"
 	"fmt"
 	"io"
 	"net"
@@ -63,7 +64,7 @@ func (s *TCPServer) handleConnection(conn net.Conn) {
 		if err != nil {
 			break
 		}
-		buffer := NewBuffer(packetData)
+		buffer := buffer2.NewBuffer(packetData)
 		if err := pc.HandlePacket(buffer); err != nil {
 			break
 		}
@@ -88,7 +89,7 @@ func (s *TCPServer) readPacket(conn net.Conn) ([]byte, error) {
 	}
 
 	// Parse length using Buffer
-	buf := NewBuffer(lengthBytes)
+	buf := buffer2.NewBuffer(lengthBytes)
 	length, err := buf.ReadVarInt()
 	if err != nil || length <= 0 || length > 2097151 {
 		return nil, fmt.Errorf("invalid packet length: %d", length)

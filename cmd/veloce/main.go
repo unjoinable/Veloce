@@ -15,7 +15,7 @@ func main() {
 	go monitorResources()
 
 	// Create the server
-	srv := network.NewTCPServer("127.0.0.1:25565", 100) // 100 max connections
+	srv := network.NewTCPServer("127.0.0.1:25565") // 100 max connections
 
 	// Start the server and block
 	if err := srv.Start(); err != nil {

@@ -1,7 +1,8 @@
-package serverbound
+package handshake
 
 import (
 	"Veloce/internal/network"
+	"Veloce/internal/network/buffer"
 	"fmt"
 )
 
@@ -16,7 +17,7 @@ func (h *HandshakePacket) ID() int32 {
 	return 0x00
 }
 
-func (h *HandshakePacket) Read(buf *network.Buffer) {
+func (h *HandshakePacket) Read(buf *buffer.Buffer) {
 	fmt.Println("Read HandshakePacket")
 	h.ProtocolVersion, _ = buf.ReadVarInt()
 	h.ServerAddress, _ = buf.ReadString()
