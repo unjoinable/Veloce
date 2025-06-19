@@ -35,6 +35,6 @@ func (p *ClientInformationPacket) Read(buf *buffer.Buffer) {
 	p.particle, _ = buf.ReadVarInt()
 }
 
-func (p *ClientInformationPacket) Handle(pc *network.PlayerConnection) {
+func (p *ClientInformationPacket) Handle(*network.PlayerConnection) {
 	fmt.Println("ClientInformationPacket Handle")
 }

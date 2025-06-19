@@ -1,6 +1,8 @@
 package network
 
-import "Veloce/internal/network/buffer"
+import (
+	"Veloce/internal/network/buffer"
+)
 
 type Packet interface {
 	ID() int32

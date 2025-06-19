@@ -8,18 +8,19 @@ import (
 )
 
 // StatusRequestPacket represents a status request from the client
-type StatusRequestPacket struct{}
+type StatusRequestPacket struct { /*No Fields*/
+}
 
 func (p *StatusRequestPacket) ID() int32 {
 	return 0x00
 }
 
-func (p *StatusRequestPacket) Read(*buffer.Buffer) {
-	fmt.Println("Reading StatusRequestPacket")
-}
+func (p *StatusRequestPacket) Read(*buffer.Buffer) { /*Nothing to read*/ }
 
 func (p *StatusRequestPacket) Handle(pc *network.PlayerConnection) {
-	fmt.Println("Processing StatusRequestPacket")
-	packet := &status.StatusResponsePacket{}
-	pc.SendPacket(packet)
+	err := pc.SendPacket(&status.StatusResponsePacket{})
+
+	if err != nil {
+		fmt.Println("Error sending status packet:", err)
+	}
 }

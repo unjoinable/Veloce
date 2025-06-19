@@ -18,15 +18,14 @@ func (h *LoginStartPacket) ID() int32 {
 }
 
 func (h *LoginStartPacket) Read(buf *buffer.Buffer) {
-	fmt.Println("Read LoginStartPacket")
 	h.Username, _ = buf.ReadString()
 	h.Uuid, _ = buf.ReadUUID()
 }
 
 func (h *LoginStartPacket) Handle(pc *network.PlayerConnection) {
-	fmt.Println("Handle LoginStartPacket")
-	fmt.Println(h.Username)
-	fmt.Println(h.Uuid)
-	packet := &login.LoginSuccessPacket{}
-	pc.SendPacket(packet)
+	err := pc.SendPacket(&login.LoginSuccessPacket{})
+
+	if err != nil {
+		fmt.Println("Error sending login success packet:", err)
+	}
 }

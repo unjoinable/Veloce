@@ -17,12 +17,13 @@ func (p *PingRequestPacket) ID() int32 {
 }
 
 func (p *PingRequestPacket) Read(buf *buffer.Buffer) {
-	fmt.Println("Reading PingRequestPacket")
 	p.Number, _ = buf.ReadInt64()
 }
 
 func (p *PingRequestPacket) Handle(pc *network.PlayerConnection) {
-	fmt.Println("Processing PingRequestPacket")
-	packet := &status.PongPacket{Number: p.Number}
-	pc.SendPacket(packet)
+	err := pc.SendPacket(&status.PongPacket{Number: p.Number})
+
+	if err != nil {
+		fmt.Println("Error sending pong packet:", err)
+	}
 }

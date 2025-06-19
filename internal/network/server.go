@@ -52,7 +52,7 @@ func (s *TCPServer) Start() error {
 
 // handleConnection processes a single client connection
 func (s *TCPServer) handleConnection(conn net.Conn) {
-	defer conn.Close()
+	//defer conn.Close() TODO: check wwhy it dropps conection
 
 	pc := NewPlayerConnection(conn)
 	connID := fmt.Sprintf("%s-%d", conn.RemoteAddr(), time.Now().UnixNano())

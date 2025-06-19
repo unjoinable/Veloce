@@ -3,7 +3,6 @@ package handshake
 import (
 	"Veloce/internal/network"
 	"Veloce/internal/network/buffer"
-	"fmt"
 )
 
 type HandshakePacket struct {
@@ -18,7 +17,6 @@ func (h *HandshakePacket) ID() int32 {
 }
 
 func (h *HandshakePacket) Read(buf *buffer.Buffer) {
-	fmt.Println("Read HandshakePacket")
 	h.ProtocolVersion, _ = buf.ReadVarInt()
 	h.ServerAddress, _ = buf.ReadString()
 	h.ServerPort, _ = buf.ReadUint16()
@@ -26,6 +24,5 @@ func (h *HandshakePacket) Read(buf *buffer.Buffer) {
 }
 
 func (h *HandshakePacket) Handle(pc *network.PlayerConnection) {
-	fmt.Println("Handle HandshakePacket")
 	pc.SetState(network.ConnectionState(h.NextState))
 }

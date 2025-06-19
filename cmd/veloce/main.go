@@ -9,11 +9,12 @@ import (
 )
 
 func main() {
-	protocol.RegisterAllPackets()
-
-	// Start resource monitoring in a separate goroutine
 	go monitorResources()
+	startServer()
+}
 
+func startServer() {
+	protocol.RegisterAllPackets()
 	// Create the server
 	srv := network.NewTCPServer("127.0.0.1:25565") // 100 max connections
 
