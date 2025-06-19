@@ -3,19 +3,20 @@ package configuration
 import (
 	"Veloce/internal/network"
 	"Veloce/internal/network/buffer"
+	"Veloce/internal/objects/protocol"
 	"fmt"
 )
 
 type ClientInformationPacket struct {
 	locale        string
 	render        byte
-	chatMode      int32
+	chatMode      protocol.VarInt
 	chatColor     bool
 	skin          byte
-	mainHand      int32
+	mainHand      protocol.VarInt
 	filter        bool
 	serverListing bool
-	particle      int32
+	particle      protocol.VarInt
 }
 
 func (p *ClientInformationPacket) ID() int32 {

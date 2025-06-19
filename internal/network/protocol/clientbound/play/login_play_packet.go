@@ -1,18 +1,21 @@
 package play
 
-import "Veloce/internal/network/buffer"
+import (
+	"Veloce/internal/network/buffer"
+	"Veloce/internal/objects/protocol"
+)
 
 type LoginPlayPacket struct {
 	EntityID            int32
 	IsHardcore          bool
 	DimensionNames      []string // Identifiers
-	MaxPlayers          int32    // VarInt
-	ViewDistance        int32    // VarInt
-	SimulationDistance  int32    // VarInt
+	MaxPlayers          protocol.VarInt
+	ViewDistance        protocol.VarInt
+	SimulationDistance  protocol.VarInt
 	ReducedDebugInfo    bool
 	EnableRespawnScreen bool
 	DoLimitedCrafting   bool
-	DimensionType       int32  // VarInt
+	DimensionType       protocol.VarInt
 	DimensionName       string // Identifier
 	HashedSeed          int64
 	GameMode            byte
@@ -22,8 +25,8 @@ type LoginPlayPacket struct {
 	HasDeathLocation    bool
 	//DeathDimensionName  *string   // optional
 	//DeathLocation       *Position // optional struct
-	PortalCooldown     int32 // VarInt
-	SeaLevel           int32 // VarInt
+	PortalCooldown     protocol.VarInt
+	SeaLevel           protocol.VarInt
 	EnforcesSecureChat bool
 }
 

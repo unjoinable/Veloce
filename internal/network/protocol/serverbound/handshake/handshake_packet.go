@@ -3,13 +3,14 @@ package handshake
 import (
 	"Veloce/internal/network"
 	"Veloce/internal/network/buffer"
+	"Veloce/internal/objects/protocol"
 )
 
 type HandshakePacket struct {
-	ProtocolVersion int32
+	ProtocolVersion protocol.VarInt
 	ServerAddress   string
 	ServerPort      uint16
-	NextState       int32
+	NextState       protocol.VarInt
 }
 
 func (h *HandshakePacket) ID() int32 {

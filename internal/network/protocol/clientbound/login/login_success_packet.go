@@ -3,6 +3,7 @@ package login
 import (
 	"Veloce/internal/entity/player"
 	"Veloce/internal/network/buffer"
+	"Veloce/internal/objects/protocol"
 	"fmt"
 )
 
@@ -21,7 +22,7 @@ func (p *LoginSuccessPacket) Write(buf *buffer.Buffer) {
 
 	//TODO: A basic way of writing this, I am not sure if this is the correct way.
 	ar := p.GameProfile.Properties
-	buf.WriteVarInt(int32(len(ar)))
+	buf.WriteVarInt(protocol.VarInt(len(ar)))
 	for i := range ar {
 		buf.WriteString(ar[i].Name)
 		buf.WriteString(ar[i].Value)

@@ -2,6 +2,7 @@ package network
 
 import (
 	"Veloce/internal/network/buffer"
+	"Veloce/internal/objects/protocol"
 	"fmt"
 	"net"
 	"sync"
@@ -34,7 +35,7 @@ func (pc *PlayerConnection) HandlePacket(buf *buffer.Buffer) error {
 		return fmt.Errorf("failed to read packet ID: %w", err)
 	}
 
-	packet, ok := GetServerBoundPacket(currentState, packetID)
+	packet, ok := GetServerBoundPacket(currentState, packetID.Int())
 	if !ok {
 		return fmt.Errorf("unknown packet ID %d for state %v", packetID, currentState)
 	}
@@ -87,8 +88,8 @@ func (pc *PlayerConnection) SendPacket(p ClientboundPacket) error {
 	p.Write(buf)
 
 	buffer := buffer.NewBuffer(nil)
-	buffer.WriteVarInt(int32(buf.Len() + 1))
-	buffer.WriteVarInt(p.ID())
+	buffer.WriteVarInt(protocol.VarInt(buf.Len() + 1))
+	buffer.WriteVarInt(protocol.VarInt(p.ID()))
 	buffer.WriteBytes(buf.Data())
 
 	_, err := conn.Write(buffer.Data())
