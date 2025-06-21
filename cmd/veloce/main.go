@@ -1,8 +1,7 @@
 package main
 
 import (
-	"Veloce/internal/network"
-	"Veloce/internal/network/protocol"
+	"Veloce/internal/network/server"
 	"log"
 	"runtime"
 	"time"
@@ -14,14 +13,9 @@ func main() {
 }
 
 func startServer() {
-	protocol.RegisterAllPackets()
-	// Create the server
-	srv := network.NewTCPServer("127.0.0.1:25565") // 100 max connections
-
-	// Start the server and block
-	if err := srv.Start(); err != nil {
-		log.Fatalf("Server exited with error: %v", err)
-	}
+	srv := server.NewMinecraftServer()
+	srv.Init()
+	srv.Start("127.0.0.1:25565")
 }
 
 func monitorResources() {
