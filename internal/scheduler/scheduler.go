@@ -8,25 +8,26 @@ import (
 // Scheduler defines the interface for scheduling tasks.
 type Scheduler interface {
 	Schedule(task Task, execType ExecutionType, delay, interval time.Duration) *TaskHandle
+	RunTickTasks()
 	Shutdown()
 }
 
 // SchedulerImpl is the concrete implementation of the Scheduler interface.
 type SchedulerImpl struct {
-	asyncQueue    chan Task
+	asyncQueue     chan Task
 	tickStartQueue chan Task
 	tickEndQueue   chan Task
-	shutdown      chan struct{}
-	wg            sync.WaitGroup
+	shutdown       chan struct{}
+	wg             sync.WaitGroup
 }
 
 // NewScheduler creates a new SchedulerImpl.
 func NewScheduler() Scheduler {
 	sched := &SchedulerImpl{
-		asyncQueue:    make(chan Task, 1024), // Buffered channel for async tasks
+		asyncQueue:     make(chan Task, 1024), // Buffered channel for async tasks
 		tickStartQueue: make(chan Task, 1024), // Buffered channel for tick-start tasks
-		tickEndQueue:   make(chan Task, 1024),  // Buffered channel for tick-end tasks
-		shutdown:      make(chan struct{}),
+		tickEndQueue:   make(chan Task, 1024), // Buffered channel for tick-end tasks
+		shutdown:       make(chan struct{}),
 	}
 
 	sched.wg.Add(1)
@@ -116,29 +117,42 @@ func (s *SchedulerImpl) runAsyncWorker() {
 	}
 }
 
-// RunTickTasks executes all tasks currently in the tick queues.
+// RunTickTasks executes all tasks currently in the tick queues concurrently within each phase.
 // This method should be called by the main game loop on each tick.
 func (s *SchedulerImpl) RunTickTasks() {
-	// Process TickStart tasks
+	var wg sync.WaitGroup // WaitGroup to manage concurrent tasks within a phase
+
+	// Process TickStart tasks concurrently
 	for {
 		select {
 		case task := <-s.tickStartQueue:
-			task()
+			wg.Add(1) // Increment counter for each task launched
+			go func(t Task) {
+				defer wg.Done() // Decrement counter when task completes
+				t()             // Execute the task in a new goroutine
+			}(task)
 		default:
 			// No more tasks in the tickStartQueue for this tick
-			goto ProcessTickEndTasks
+			goto ProcessTickEndTasks // Jump to the next phase
 		}
 	}
 
 ProcessTickEndTasks:
-	// Process all TickEnd tasks for this tick
+	wg.Wait() // Wait for all TickStart tasks to complete before starting TickEnd tasks
+
+	// Process TickEnd tasks concurrently
 	for {
 		select {
 		case task := <-s.tickEndQueue:
-			task()
+			wg.Add(1) // Increment counter for each task launched
+			go func(t Task) {
+				defer wg.Done() // Decrement counter when task completes
+				t()             // Execute the task in a new goroutine
+			}(task)
 		default:
 			// No more tasks in the tickEndQueue for this tick
-			return // Exit the function after processing all tick-end tasks
+			wg.Wait() // Wait for all TickEnd tasks to complete
+			return    // Exit the function after processing all tick-end tasks
 		}
 	}
 }

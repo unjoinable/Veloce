@@ -2,9 +2,10 @@ package server
 
 import (
 	"Veloce/internal/entity/player"
+	"Veloce/internal/game/ticker"
 	"Veloce/internal/handler"
-	"Veloce/internal/network"
 	"Veloce/internal/interfaces"
+	"Veloce/internal/network"
 	"Veloce/internal/protocol"
 	"Veloce/internal/scheduler"
 	"github.com/google/uuid"
@@ -28,19 +29,22 @@ type MinecraftServer struct {
 	playPlayers map[uuid.UUID]*player.Player
 	brandName   string
 
-	packetRegistry  *network.PacketRegistry
+	packetRegistry   *network.PacketRegistry
 	packetDispatcher *handler.PacketDispatcher
 	scheduler        scheduler.Scheduler
+	ticker           *ticker.Ticker // Manages game ticks
 }
 
 func NewMinecraftServer() *MinecraftServer {
 	registry := network.NewPacketRegistry()
+	sched := scheduler.NewScheduler()
 	return &MinecraftServer{
 		running:          false,
 		playPlayers:      make(map[uuid.UUID]*player.Player),
 		packetRegistry:   registry,
 		packetDispatcher: handler.NewPacketDispatcher(registry),
-		scheduler:        scheduler.NewScheduler(),
+		scheduler:        sched,
+		ticker:           ticker.NewTicker(sched), // Initialize Ticker
 	}
 }
 
@@ -74,6 +78,7 @@ func (s *MinecraftServer) Start(address string) {
 	}
 
 	s.running = true
+	s.ticker.Start() // Start the game loop
 }
 
 func (s *MinecraftServer) SetBrand(brand string) {
@@ -89,6 +94,7 @@ func (s *MinecraftServer) GetBrand() string {
 }
 
 func (s *MinecraftServer) Shutdown() {
+	s.running = false
+	s.ticker.Shutdown()
 	s.scheduler.Shutdown()
-	// Add other shutdown logic here if needed
 }
