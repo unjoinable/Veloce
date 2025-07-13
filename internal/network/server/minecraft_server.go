@@ -2,7 +2,10 @@ package server
 
 import (
 	"Veloce/internal/entity/player"
-	"Veloce/internal/network/protocol"
+	"Veloce/internal/handler"
+	"Veloce/internal/network"
+	"Veloce/internal/interfaces"
+	"Veloce/internal/protocol"
 	"github.com/google/uuid"
 	"log"
 	"sync"
@@ -23,21 +26,45 @@ type MinecraftServer struct {
 
 	playPlayers map[uuid.UUID]*player.Player
 	brandName   string
+
+	packetRegistry  *network.PacketRegistry
+	packetDispatcher *handler.PacketDispatcher
 }
 
 func NewMinecraftServer() *MinecraftServer {
+	registry := network.NewPacketRegistry()
 	return &MinecraftServer{
-		running:     false,
-		playPlayers: make(map[uuid.UUID]*player.Player),
+		running:          false,
+		playPlayers:      make(map[uuid.UUID]*player.Player),
+		packetRegistry:   registry,
+		packetDispatcher: handler.NewPacketDispatcher(registry),
 	}
 }
 
 func (s *MinecraftServer) Init() {
-	protocol.RegisterAllPackets()
+	protocol.RegisterAllPackets(s.packetRegistry)
+
+	// Register Handlers
+	s.packetDispatcher.RegisterHandler(interfaces.Handshake, 0x00, &handler.HandshakePacketHandler{})
+
+	s.packetDispatcher.RegisterHandler(interfaces.Status, 0x00, &handler.StatusRequestPacketHandler{})
+	s.packetDispatcher.RegisterHandler(interfaces.Status, 0x01, &handler.PingRequestPacketHandler{})
+
+	s.packetDispatcher.RegisterHandler(interfaces.Login, 0x00, &handler.LoginStartPacketHandler{})
+	s.packetDispatcher.RegisterHandler(interfaces.Login, 0x03, &handler.LoginAcknowledgedPacketHandler{})
+
+	s.packetDispatcher.RegisterHandler(interfaces.Configuration, 0x00, &handler.ClientInformationPacketHandler{})
+	s.packetDispatcher.RegisterHandler(interfaces.Configuration, 0x02, &handler.PluginMessagePacketHandler{})
+	s.packetDispatcher.RegisterHandler(interfaces.Configuration, 0x03, &handler.AcknowledgeFinishConfigurationPacketHandler{})
+	s.packetDispatcher.RegisterHandler(interfaces.Configuration, 0x07, &handler.ServerBoundKnownPacksPacketHandler{})
+
+	s.packetDispatcher.RegisterHandler(interfaces.Play, 0x0B, &handler.ClientTickEndPacketHandler{})
+	s.packetDispatcher.RegisterHandler(interfaces.Play, 0x1C, &handler.MovePlayerPosPacketHandler{})
+	s.packetDispatcher.RegisterHandler(interfaces.Play, 0x1D, &handler.MovePlayerPosRotPacketHandler{})
 }
 
 func (s *MinecraftServer) Start(address string) {
-	tcpServer := NewTCPServer(address)
+	tcpServer := NewTCPServer(address, s.packetDispatcher)
 
 	if err := tcpServer.Start(); err != nil {
 		log.Fatalf("Server exited with error: %v", err)

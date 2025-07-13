@@ -1,8 +1,9 @@
 package network
 
 import (
-	"Veloce/internal/network/buffer"
 	"Veloce/internal/objects/protocol"
+	"Veloce/internal/handler"
+	"Veloce/internal/interfaces"
 	"fmt"
 	"net"
 	"sync"
@@ -11,21 +12,23 @@ import (
 
 // PlayerConnection represents a client connection
 type PlayerConnection struct {
-	conn  net.Conn
-	state ConnectionState
-	mu    sync.RWMutex
+	conn      net.Conn
+	state     interfaces.ConnectionState
+	mu        sync.RWMutex
+	dispatcher *handler.PacketDispatcher
 }
 
 // NewPlayerConnection creates a new player connection
-func NewPlayerConnection(conn net.Conn) *PlayerConnection {
+func NewPlayerConnection(conn net.Conn, dispatcher *handler.PacketDispatcher) *PlayerConnection {
 	return &PlayerConnection{
-		conn:  conn,
-		state: Handshake,
+		conn:      conn,
+		state:     interfaces.Handshake,
+		dispatcher: dispatcher,
 	}
 }
 
 // HandlePacket processes incoming packets
-func (pc *PlayerConnection) HandlePacket(buf *buffer.Buffer) error {
+func (pc *PlayerConnection) HandlePacket(buf *interfaces.Buffer) error {
 	pc.mu.RLock()
 	currentState := pc.state
 	pc.mu.RUnlock()
@@ -35,18 +38,7 @@ func (pc *PlayerConnection) HandlePacket(buf *buffer.Buffer) error {
 		return fmt.Errorf("failed to read packet ID: %w", err)
 	}
 
-	packet, ok := GetServerBoundPacket(currentState, packetID.Int())
-	if !ok {
-		return fmt.Errorf("unknown packet ID %d for state %v", packetID, currentState)
-	}
-
-	if packet == nil {
-		return fmt.Errorf("packet not implemented: ID %d, State %v", packetID, currentState)
-	}
-
-	packet.Read(buf)
-	packet.Handle(pc)
-	return nil
+	return pc.dispatcher.Dispatch(pc, currentState, packetID.Int(), buf)
 }
 
 // SendRaw to send raw bytes
@@ -71,7 +63,7 @@ func (pc *PlayerConnection) SendRaw(data []byte) error {
 }
 
 // SendPacket sends a packet to the client
-func (pc *PlayerConnection) SendPacket(p ClientboundPacket) error {
+func (pc *PlayerConnection) SendPacket(p interfaces.ClientboundPacket) error {
 	pc.mu.RLock()
 	conn := pc.conn
 	pc.mu.RUnlock()
@@ -84,10 +76,10 @@ func (pc *PlayerConnection) SendPacket(p ClientboundPacket) error {
 		return err
 	}
 
-	buf := buffer.NewBuffer(nil)
+	buf := interfaces.NewBuffer(nil)
 	p.Write(buf)
 
-	buffer := buffer.NewBuffer(nil)
+	buffer := interfaces.NewBuffer(nil)
 	buffer.WriteVarInt(protocol.VarInt(buf.Len() + 1))
 	buffer.WriteVarInt(protocol.VarInt(p.ID()))
 	buffer.WriteBytes(buf.Data())
@@ -97,14 +89,14 @@ func (pc *PlayerConnection) SendPacket(p ClientboundPacket) error {
 }
 
 // SetState updates the connection state
-func (pc *PlayerConnection) SetState(s ConnectionState) {
+func (pc *PlayerConnection) SetState(s interfaces.ConnectionState) {
 	pc.mu.Lock()
 	defer pc.mu.Unlock()
 	pc.state = s
 }
 
 // GetState returns the current connection state
-func (pc *PlayerConnection) GetState() ConnectionState {
+func (pc *PlayerConnection) GetState() interfaces.ConnectionState {
 	pc.mu.RLock()
 	defer pc.mu.RUnlock()
 	return pc.state

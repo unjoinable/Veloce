@@ -1,8 +1,9 @@
 package server
 
 import (
+	"Veloce/internal/handler"
 	"Veloce/internal/network"
-	"Veloce/internal/network/buffer"
+	"Veloce/internal/interfaces"
 	"fmt"
 	"io"
 	"net"
@@ -16,12 +17,14 @@ type TCPServer struct {
 	addr        string
 	running     bool
 	connections sync.Map
+	dispatcher  *handler.PacketDispatcher
 }
 
 // NewTCPServer creates a new simplified TCP server
-func NewTCPServer(addr string) *TCPServer {
+func NewTCPServer(addr string, dispatcher *handler.PacketDispatcher) *TCPServer {
 	return &TCPServer{
-		addr: addr,
+		addr:       addr,
+		dispatcher: dispatcher,
 	}
 }
 
@@ -108,7 +111,7 @@ func (s *TCPServer) readRawPacket(conn net.Conn) ([]byte, error) {
 func (s *TCPServer) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
-	pc := network.NewPlayerConnection(conn)
+	pc := network.NewPlayerConnection(conn, s.dispatcher)
 	connID := conn.RemoteAddr().String()
 	s.connections.Store(connID, pc)
 	defer s.connections.Delete(connID)
@@ -120,7 +123,7 @@ func (s *TCPServer) handleConnection(conn net.Conn) {
 			continue // Skip if invalid packet
 		}
 
-		buf := buffer.NewBuffer(rawPacket)
+		buf := interfaces.NewBuffer(rawPacket)
 
 		if err := pc.HandlePacket(buf); err != nil {
 			fmt.Printf("Skipping Packet! Error handling packet from %s: %v\n", conn.RemoteAddr(), err)

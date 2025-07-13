@@ -8,8 +8,8 @@ import (
 )
 
 func main() {
-	go monitorResources()
 	startServer()
+	go monitorResources()
 }
 
 func startServer() {
