@@ -125,17 +125,20 @@ func (s *SchedulerImpl) RunTickTasks() {
 		case task := <-s.tickStartQueue:
 			task()
 		default:
-			break // No more tasks in the tickStartQueue
+			// No more tasks in the tickStartQueue for this tick
+			goto ProcessTickEndTasks
 		}
 	}
 
-	// Process TickEnd tasks
+ProcessTickEndTasks:
+	// Process all TickEnd tasks for this tick
 	for {
 		select {
 		case task := <-s.tickEndQueue:
 			task()
 		default:
-			return // No more tasks in the tickEndQueue
+			// No more tasks in the tickEndQueue for this tick
+			return // Exit the function after processing all tick-end tasks
 		}
 	}
 }
