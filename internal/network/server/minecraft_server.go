@@ -6,6 +6,7 @@ import (
 	"Veloce/internal/network"
 	"Veloce/internal/interfaces"
 	"Veloce/internal/protocol"
+	"Veloce/internal/scheduler"
 	"github.com/google/uuid"
 	"log"
 	"sync"
@@ -29,6 +30,7 @@ type MinecraftServer struct {
 
 	packetRegistry  *network.PacketRegistry
 	packetDispatcher *handler.PacketDispatcher
+	scheduler        scheduler.Scheduler
 }
 
 func NewMinecraftServer() *MinecraftServer {
@@ -38,6 +40,7 @@ func NewMinecraftServer() *MinecraftServer {
 		playPlayers:      make(map[uuid.UUID]*player.Player),
 		packetRegistry:   registry,
 		packetDispatcher: handler.NewPacketDispatcher(registry),
+		scheduler:        scheduler.NewScheduler(),
 	}
 }
 
@@ -83,4 +86,9 @@ func (s *MinecraftServer) GetBrand() string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.brandName
+}
+
+func (s *MinecraftServer) Shutdown() {
+	s.scheduler.Shutdown()
+	// Add other shutdown logic here if needed
 }
