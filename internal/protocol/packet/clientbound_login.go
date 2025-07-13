@@ -4,7 +4,6 @@ import (
 	"Veloce/internal/entity/player"
 	"Veloce/internal/interfaces"
 	"Veloce/internal/objects/protocol"
-	"fmt"
 )
 
 type LoginSuccessPacket struct {
@@ -16,7 +15,6 @@ func (p *LoginSuccessPacket) ID() int32 {
 }
 
 func (p *LoginSuccessPacket) Write(buf *interfaces.Buffer) {
-	fmt.Println("Write LoginSuccessPacket")
 	buf.WriteUUID(p.GameProfile.UUID)
 	buf.WriteString(p.GameProfile.Name)
 

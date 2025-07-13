@@ -2,7 +2,6 @@ package packet
 
 import (
 	"Veloce/internal/interfaces"
-	"fmt"
 )
 
 type ClientBoundKnownPacksPacket struct {
@@ -14,7 +13,7 @@ func (p *ClientBoundKnownPacksPacket) ID() int32 {
 }
 
 func (p *ClientBoundKnownPacksPacket) Write(buf *interfaces.Buffer) {
-	fmt.Println("Write ClientBoundKnownPacksPacket")
+	
 	buf.WriteVarInt(1)
 	buf.WriteString("minecraft")
 	buf.WriteString("core")

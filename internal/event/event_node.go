@@ -115,7 +115,7 @@ func GetHandle[T Event](n *EventNode) *ListenerHandle[T] {
 		return h.(*ListenerHandle[T])
 	}
 
-	fmt.Println("[GetHandle] Creating new handle for", t)
+	
 	handle := &ListenerHandle[T]{}
 	n.handles[t] = handle
 	return handle

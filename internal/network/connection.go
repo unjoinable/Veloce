@@ -48,7 +48,7 @@ func (pc *PlayerConnection) SendRaw(data []byte) error {
 	pc.mu.RUnlock()
 
 	fmt.Println("sending raw data")
-	fmt.Println(data)
+	
 
 	if conn == nil {
 		return fmt.Errorf("connection is closed")

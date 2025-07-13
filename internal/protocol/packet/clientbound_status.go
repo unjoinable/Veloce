@@ -2,7 +2,6 @@ package packet
 
 import (
 	"Veloce/internal/interfaces"
-	"fmt"
 )
 
 const JsonExample = `{
@@ -36,7 +35,6 @@ func (p *StatusResponsePacket) ID() int32 {
 }
 
 func (p *StatusResponsePacket) Write(buf *interfaces.Buffer) {
-	fmt.Println("Write StatusResponsePacket")
 	buf.WriteString(JsonExample)
 }
 
@@ -50,6 +48,5 @@ func (p *PongPacket) ID() int32 {
 }
 
 func (p *PongPacket) Write(buf *interfaces.Buffer) {
-	fmt.Println("Write PongPacket")
 	buf.WriteInt64(p.Number)
 }

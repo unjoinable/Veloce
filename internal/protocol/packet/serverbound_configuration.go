@@ -3,7 +3,6 @@ package packet
 import (
 	"Veloce/internal/interfaces"
 	"Veloce/internal/objects/protocol"
-	"fmt"
 )
 
 type AcknowledgeFinishConfigurationPacket struct { /*No Fields*/
@@ -14,7 +13,6 @@ func (p *AcknowledgeFinishConfigurationPacket) ID() int32 {
 }
 
 func (p *AcknowledgeFinishConfigurationPacket) Read(*interfaces.Buffer) {
-	fmt.Println("Read AcknowledgeFinishConfigurationPacket")
 }
 
 type ClientInformationPacket struct {
@@ -34,7 +32,6 @@ func (p *ClientInformationPacket) ID() int32 {
 }
 
 func (p *ClientInformationPacket) Read(buf *interfaces.Buffer) {
-	fmt.Println("Read ClientInformationPacket")
 	p.locale, _ = buf.ReadString()
 	p.render, _ = buf.ReadByte()
 	p.chatMode, _ = buf.ReadVarInt()
@@ -56,10 +53,8 @@ func (p *PluginMessagePacket) ID() int32 {
 }
 
 func (p *PluginMessagePacket) Read(buf *interfaces.Buffer) {
-	fmt.Println("Read PluginMessagePacket")
 	p.identifier, _ = buf.ReadString()
 	p.data = buf.Data()
-	fmt.Println(p.identifier)
 }
 
 type ServerBoundKnownPacksPacket struct {
@@ -71,5 +66,4 @@ func (p *ServerBoundKnownPacksPacket) ID() int32 {
 }
 
 func (p *ServerBoundKnownPacksPacket) Read(buf *interfaces.Buffer) {
-	fmt.Println("Read ServerBoundKnownPacksPacket")
 }
