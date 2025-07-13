@@ -2,7 +2,6 @@ package server
 
 import (
 	"Veloce/internal/entity/player"
-	"Veloce/internal/game/ticker"
 	"Veloce/internal/handler"
 	"Veloce/internal/interfaces"
 	"Veloce/internal/network"
@@ -32,7 +31,7 @@ type MinecraftServer struct {
 	packetRegistry   *network.PacketRegistry
 	packetDispatcher *handler.PacketDispatcher
 	scheduler        scheduler.Scheduler
-	ticker           *ticker.Ticker // Manages game ticks
+	ticker           *scheduler.Ticker // Manages game ticks
 }
 
 func NewMinecraftServer() *MinecraftServer {
@@ -44,7 +43,7 @@ func NewMinecraftServer() *MinecraftServer {
 		packetRegistry:   registry,
 		packetDispatcher: handler.NewPacketDispatcher(registry),
 		scheduler:        sched,
-		ticker:           ticker.NewTicker(sched), // Initialize Ticker
+		ticker:           scheduler.NewTicker(sched), // Initialize Ticker
 	}
 }
 

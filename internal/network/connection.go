@@ -1,9 +1,9 @@
 package network
 
 import (
-	"Veloce/internal/objects/protocol"
 	"Veloce/internal/handler"
 	"Veloce/internal/interfaces"
+	"Veloce/internal/objects/protocol"
 	"fmt"
 	"net"
 	"sync"
@@ -12,17 +12,17 @@ import (
 
 // PlayerConnection represents a client connection
 type PlayerConnection struct {
-	conn      net.Conn
-	state     interfaces.ConnectionState
-	mu        sync.RWMutex
+	conn       net.Conn
+	state      interfaces.ConnectionState
+	mu         sync.RWMutex
 	dispatcher *handler.PacketDispatcher
 }
 
 // NewPlayerConnection creates a new player connection
 func NewPlayerConnection(conn net.Conn, dispatcher *handler.PacketDispatcher) *PlayerConnection {
 	return &PlayerConnection{
-		conn:      conn,
-		state:     interfaces.Handshake,
+		conn:       conn,
+		state:      interfaces.Handshake,
 		dispatcher: dispatcher,
 	}
 }
@@ -48,7 +48,6 @@ func (pc *PlayerConnection) SendRaw(data []byte) error {
 	pc.mu.RUnlock()
 
 	fmt.Println("sending raw data")
-	
 
 	if conn == nil {
 		return fmt.Errorf("connection is closed")
