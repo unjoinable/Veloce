@@ -13,18 +13,20 @@ type Scheduler interface {
 
 // SchedulerImpl is the concrete implementation of the Scheduler interface.
 type SchedulerImpl struct {
-	asyncQueue chan Task
-	tickQueue  chan Task
-	shutdown   chan struct{}
-	wg         sync.WaitGroup
+	asyncQueue    chan Task
+	tickStartQueue chan Task
+	tickEndQueue   chan Task
+	shutdown      chan struct{}
+	wg            sync.WaitGroup
 }
 
 // NewScheduler creates a new SchedulerImpl.
 func NewScheduler() Scheduler {
 	sched := &SchedulerImpl{
-		asyncQueue: make(chan Task, 1024), // Buffered channel for async tasks
-		tickQueue:  make(chan Task, 1024),  // Buffered channel for tick tasks
-		shutdown:   make(chan struct{}),
+		asyncQueue:    make(chan Task, 1024), // Buffered channel for async tasks
+		tickStartQueue: make(chan Task, 1024), // Buffered channel for tick-start tasks
+		tickEndQueue:   make(chan Task, 1024),  // Buffered channel for tick-end tasks
+		shutdown:      make(chan struct{}),
 	}
 
 	sched.wg.Add(1)
@@ -82,16 +84,23 @@ func (s *SchedulerImpl) Schedule(task Task, execType ExecutionType, delay, inter
 
 // executeTask sends the task to the appropriate queue.
 func (s *SchedulerImpl) executeTask(task Task, execType ExecutionType) {
-	select {
-	case s.asyncQueue <- task:
-		// Task sent to async queue
-	case s.tickQueue <- task:
-		// Task sent to tick queue
-	case <-s.shutdown:
-		// Scheduler is shutting down, drop task
-	default:
-		// Queues are full, drop task (or implement a blocking strategy)
-	}
+	s.wg.Add(1)
+	go func() {
+		defer s.wg.Done()
+		select {
+		case <-s.shutdown:
+			return
+		default:
+			switch execType {
+			case Async:
+				s.asyncQueue <- task
+			case TickStart:
+				s.tickStartQueue <- task
+			case TickEnd:
+				s.tickEndQueue <- task
+			}
+		}
+	}()
 }
 
 // runAsyncWorker processes tasks from the async queue.
@@ -107,15 +116,26 @@ func (s *SchedulerImpl) runAsyncWorker() {
 	}
 }
 
-// RunTickTasks executes all tasks currently in the tick queue.
+// RunTickTasks executes all tasks currently in the tick queues.
 // This method should be called by the main game loop on each tick.
 func (s *SchedulerImpl) RunTickTasks() {
+	// Process TickStart tasks
 	for {
 		select {
-		case task := <-s.tickQueue:
+		case task := <-s.tickStartQueue:
 			task()
 		default:
-			return // No more tasks in the tick queue for this tick
+			break // No more tasks in the tickStartQueue
+		}
+	}
+
+	// Process TickEnd tasks
+	for {
+		select {
+		case task := <-s.tickEndQueue:
+			task()
+		default:
+			return // No more tasks in the tickEndQueue
 		}
 	}
 }

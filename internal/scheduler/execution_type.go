@@ -5,6 +5,8 @@ type ExecutionType int
 const (
 	// Async tasks are executed in a separate goroutine immediately.
 	Async ExecutionType = iota
-	// Tick tasks are executed on the main tick loop.
-	Tick
+	// TickStart tasks are executed at the beginning of the main tick loop.
+	TickStart
+	// TickEnd tasks are executed at the end of the main tick loop.
+	TickEnd
 )
