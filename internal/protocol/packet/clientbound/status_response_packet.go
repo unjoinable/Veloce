@@ -1,4 +1,4 @@
-package packet
+package clientbound
 
 import (
 	"Veloce/internal/interfaces"
@@ -36,17 +36,4 @@ func (p *StatusResponsePacket) ID() int32 {
 
 func (p *StatusResponsePacket) Write(buf *interfaces.Buffer) {
 	buf.WriteString(JsonExample)
-}
-
-// PongPacket represents a pong response to a ping request
-type PongPacket struct {
-	Number int64
-}
-
-func (p *PongPacket) ID() int32 {
-	return 0x01
-}
-
-func (p *PongPacket) Write(buf *interfaces.Buffer) {
-	buf.WriteInt64(p.Number)
 }

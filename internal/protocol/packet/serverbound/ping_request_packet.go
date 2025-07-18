@@ -1,7 +1,8 @@
-package packet
+package serverbound
 
 import (
 	"Veloce/internal/interfaces"
+	"Veloce/internal/protocol/packet/clientbound"
 )
 
 type PingRequestPacket struct {
@@ -16,11 +17,6 @@ func (p *PingRequestPacket) Read(buf *interfaces.Buffer) {
 	p.Number, _ = buf.ReadInt64()
 }
 
-type StatusRequestPacket struct { /*No Fields*/
+func (p *PingRequestPacket) Handle(pc *interfaces.PlayerConnection) {
+	_ = pc.SendPacket(&clientbound.PongPacket{Number: p.Number})
 }
-
-func (p *StatusRequestPacket) ID() int32 {
-	return 0x00
-}
-
-func (p *StatusRequestPacket) Read(*interfaces.Buffer) { /*Nothing to read*/ }

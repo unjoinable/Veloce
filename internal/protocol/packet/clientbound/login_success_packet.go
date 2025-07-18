@@ -1,9 +1,8 @@
-package packet
+package clientbound
 
 import (
 	"Veloce/internal/entity/player"
 	"Veloce/internal/interfaces"
-	"Veloce/internal/objects/protocol"
 )
 
 type LoginSuccessPacket struct {
@@ -20,7 +19,7 @@ func (p *LoginSuccessPacket) Write(buf *interfaces.Buffer) {
 
 	//TODO: A basic way of writing this, I am not sure if this is the correct way.
 	ar := p.GameProfile.Properties
-	buf.WriteVarInt(protocol.VarInt(len(ar)))
+	buf.WriteVarInt(int32(len(ar)))
 	for i := range ar {
 		buf.WriteString(ar[i].Name)
 		buf.WriteString(ar[i].Value)

@@ -10,7 +10,7 @@ import (
 type Player struct {
 	//Internals
 	remoteAddr  string
-	pc          interfaces.Connection
+	pc          interfaces.PlayerConnection
 	gameProfile GameProfile
 	mu          sync.RWMutex
 
