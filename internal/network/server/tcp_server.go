@@ -2,7 +2,7 @@ package server
 
 import (
 	"Veloce/internal/network"
-	common2 "Veloce/internal/network/common"
+	"Veloce/internal/network/common"
 	"fmt"
 	"io"
 	"net"
@@ -63,7 +63,7 @@ func (s *TCPServer) Shutdown() error {
 	}
 
 	s.connections.Range(func(key, value interface{}) bool {
-		if pc, ok := value.(*common2.PlayerConnection); ok {
+		if pc, ok := value.(*common.PlayerConnection); ok {
 			pc.Close()
 		}
 		return true
@@ -72,7 +72,7 @@ func (s *TCPServer) Shutdown() error {
 	return nil
 }
 
-func (s *TCPServer) readPacket(conn net.Conn) (*common2.Buffer, error) {
+func (s *TCPServer) readPacket(conn net.Conn) (*common.Buffer, error) {
 	if err := conn.SetReadDeadline(time.Now().Add(30 * time.Second)); err != nil {
 		return nil, fmt.Errorf("failed to set read deadline: %w", err)
 	}
@@ -95,7 +95,7 @@ func (s *TCPServer) readPacket(conn net.Conn) (*common2.Buffer, error) {
 	}
 
 	// Create buffer from the VarInt bytes and read the length
-	varintBuf := common2.NewBuffer(tempBuf[:bytesRead])
+	varintBuf := common.NewBuffer(tempBuf[:bytesRead])
 	length, err := varintBuf.ReadVarInt()
 	if err != nil {
 		return nil, fmt.Errorf("failed to read packet length: %w", err)
@@ -112,13 +112,12 @@ func (s *TCPServer) readPacket(conn net.Conn) (*common2.Buffer, error) {
 	}
 
 	// Return a buffer containing the packet data
-	return common2.NewBuffer(packetData), nil
+	return common.NewBuffer(packetData), nil
 }
 
 func (s *TCPServer) handleConnection(conn net.Conn) {
 	defer conn.Close()
-
-	pc := common2.NewPlayerConnection(conn)
+	pc := common.NewPlayerConnection(conn)
 	connID := conn.RemoteAddr().String()
 	s.connections.Store(connID, pc)
 	defer s.connections.Delete(connID)
@@ -126,19 +125,23 @@ func (s *TCPServer) handleConnection(conn net.Conn) {
 	for s.running {
 		packetBuf, err := s.readPacket(conn)
 		if err != nil {
+			if err == io.EOF {
+				fmt.Printf("Client %s disconnected\n", conn.RemoteAddr())
+				return // Exit the handler - don't continue the loop
+			}
 			fmt.Printf("Error reading packet from %s: %v\n", conn.RemoteAddr(), err)
-			continue
+			return // Exit on any error - don't continue
 		}
 
 		currentState := pc.GetState()
 		packetId, err := packetBuf.ReadVarInt()
-
 		if err != nil {
 			fmt.Printf("failed to read packet ID: %s", err)
 			continue
 		}
 
 		packet, _ := s.packetRegistry.GetServerBoundPacket(currentState, packetId)
+		packet.Read(packetBuf)
 		packet.Handle(pc)
 	}
 }
