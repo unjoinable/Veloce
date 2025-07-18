@@ -1,7 +1,7 @@
 package clientbound
 
 import (
-	"Veloce/internal/interfaces"
+	"Veloce/internal/network/common"
 )
 
 const JsonExample = `{
@@ -34,6 +34,6 @@ func (p *StatusResponsePacket) ID() int32 {
 	return 0x00
 }
 
-func (p *StatusResponsePacket) Write(buf *interfaces.Buffer) {
+func (p *StatusResponsePacket) Write(buf *common.Buffer) {
 	buf.WriteString(JsonExample)
 }

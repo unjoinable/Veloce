@@ -1,7 +1,7 @@
 package serverbound
 
 import (
-	"Veloce/internal/interfaces"
+	common2 "Veloce/internal/network/common"
 	"Veloce/internal/protocol/packet/clientbound"
 	"github.com/google/uuid"
 )
@@ -15,11 +15,11 @@ func (h *LoginStartPacket) ID() int32 {
 	return 0x00
 }
 
-func (h *LoginStartPacket) Read(buf *interfaces.Buffer) {
+func (h *LoginStartPacket) Read(buf *common2.Buffer) {
 	h.Username, _ = buf.ReadString()
 	h.Uuid, _ = buf.ReadUUID()
 }
 
-func (h *LoginStartPacket) Handle(pc *interfaces.PlayerConnection) {
+func (h *LoginStartPacket) Handle(pc *common2.PlayerConnection) {
 	_ = pc.SendPacket(&clientbound.LoginSuccessPacket{})
 }

@@ -1,7 +1,7 @@
 package serverbound
 
 import (
-	"Veloce/internal/interfaces"
+	common2 "Veloce/internal/network/common"
 	"Veloce/internal/protocol/packet/clientbound"
 )
 
@@ -13,11 +13,11 @@ func (p *LoginAcknowledgedPacket) ID() int32 {
 	return 0x03
 }
 
-func (p *LoginAcknowledgedPacket) Read(_ *interfaces.Buffer) {
+func (p *LoginAcknowledgedPacket) Read(_ *common2.Buffer) {
 	// No Reading
 }
 
-func (p *LoginAcknowledgedPacket) Handle(pc *interfaces.PlayerConnection) {
-	pc.SetState(interfaces.Configuration)
+func (p *LoginAcknowledgedPacket) Handle(pc *common2.PlayerConnection) {
+	pc.SetState(common2.Configuration)
 	_ = pc.SendPacket(&clientbound.ClientBoundKnownPacksPacket{})
 }

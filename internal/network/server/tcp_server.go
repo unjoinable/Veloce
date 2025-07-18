@@ -1,8 +1,8 @@
 package server
 
 import (
-	"Veloce/internal/interfaces"
 	"Veloce/internal/network"
+	common2 "Veloce/internal/network/common"
 	"fmt"
 	"io"
 	"net"
@@ -63,7 +63,7 @@ func (s *TCPServer) Shutdown() error {
 	}
 
 	s.connections.Range(func(key, value interface{}) bool {
-		if pc, ok := value.(*interfaces.PlayerConnection); ok {
+		if pc, ok := value.(*common2.PlayerConnection); ok {
 			pc.Close()
 		}
 		return true
@@ -72,7 +72,7 @@ func (s *TCPServer) Shutdown() error {
 	return nil
 }
 
-func (s *TCPServer) readPacket(conn net.Conn) (*interfaces.Buffer, error) {
+func (s *TCPServer) readPacket(conn net.Conn) (*common2.Buffer, error) {
 	if err := conn.SetReadDeadline(time.Now().Add(30 * time.Second)); err != nil {
 		return nil, fmt.Errorf("failed to set read deadline: %w", err)
 	}
@@ -95,7 +95,7 @@ func (s *TCPServer) readPacket(conn net.Conn) (*interfaces.Buffer, error) {
 	}
 
 	// Create buffer from the VarInt bytes and read the length
-	varintBuf := interfaces.NewBuffer(tempBuf[:bytesRead])
+	varintBuf := common2.NewBuffer(tempBuf[:bytesRead])
 	length, err := varintBuf.ReadVarInt()
 	if err != nil {
 		return nil, fmt.Errorf("failed to read packet length: %w", err)
@@ -112,13 +112,13 @@ func (s *TCPServer) readPacket(conn net.Conn) (*interfaces.Buffer, error) {
 	}
 
 	// Return a buffer containing the packet data
-	return interfaces.NewBuffer(packetData), nil
+	return common2.NewBuffer(packetData), nil
 }
 
 func (s *TCPServer) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
-	pc := interfaces.NewPlayerConnection(conn)
+	pc := common2.NewPlayerConnection(conn)
 	connID := conn.RemoteAddr().String()
 	s.connections.Store(connID, pc)
 	defer s.connections.Delete(connID)

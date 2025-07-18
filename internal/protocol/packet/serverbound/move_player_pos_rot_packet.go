@@ -1,7 +1,7 @@
 package serverbound
 
 import (
-	"Veloce/internal/interfaces"
+	common2 "Veloce/internal/network/common"
 )
 
 type MovePlayerPosRotPacket struct {
@@ -17,7 +17,7 @@ func (m MovePlayerPosRotPacket) ID() int32 {
 	return 0x1D
 }
 
-func (m MovePlayerPosRotPacket) Read(buf *interfaces.Buffer) {
+func (m MovePlayerPosRotPacket) Read(buf *common2.Buffer) {
 	m.X, _ = buf.ReadInt64()
 	m.Y, _ = buf.ReadInt64()
 	m.Z, _ = buf.ReadInt64()
@@ -26,6 +26,6 @@ func (m MovePlayerPosRotPacket) Read(buf *interfaces.Buffer) {
 	m.Flags, _ = buf.ReadByte()
 }
 
-func (m MovePlayerPosRotPacket) Handle(pc *interfaces.PlayerConnection) {
+func (m MovePlayerPosRotPacket) Handle(pc *common2.PlayerConnection) {
 	// No handling
 }

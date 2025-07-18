@@ -1,7 +1,7 @@
 package serverbound
 
 import (
-	"Veloce/internal/interfaces"
+	common2 "Veloce/internal/network/common"
 )
 
 type ConfirmTeleportationPacket struct {
@@ -12,10 +12,10 @@ func (c ConfirmTeleportationPacket) ID() int32 {
 	return 0x00
 }
 
-func (c ConfirmTeleportationPacket) Read(buf *interfaces.Buffer) {
+func (c ConfirmTeleportationPacket) Read(buf *common2.Buffer) {
 	c.TeleportId, _ = buf.ReadVarInt()
 }
 
-func (c ConfirmTeleportationPacket) Handle(*interfaces.PlayerConnection) {
+func (c ConfirmTeleportationPacket) Handle(*common2.PlayerConnection) {
 	// No Handling
 }

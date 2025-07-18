@@ -1,7 +1,7 @@
 package clientbound
 
 import (
-	"Veloce/internal/interfaces"
+	"Veloce/internal/network/common"
 )
 
 type ClientBoundKnownPacksPacket struct {
@@ -12,7 +12,7 @@ func (p *ClientBoundKnownPacksPacket) ID() int32 {
 	return 0x0E
 }
 
-func (p *ClientBoundKnownPacksPacket) Write(buf *interfaces.Buffer) {
+func (p *ClientBoundKnownPacksPacket) Write(buf *common.Buffer) {
 	buf.WriteVarInt(1)
 	buf.WriteString("minecraft")
 	buf.WriteString("core")

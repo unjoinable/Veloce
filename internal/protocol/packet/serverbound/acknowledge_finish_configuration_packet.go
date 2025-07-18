@@ -1,7 +1,7 @@
 package serverbound
 
 import (
-	"Veloce/internal/interfaces"
+	common2 "Veloce/internal/network/common"
 	"Veloce/internal/protocol/packet/clientbound"
 )
 
@@ -13,12 +13,12 @@ func (p *AcknowledgeFinishConfigurationPacket) ID() int32 {
 	return 0x03
 }
 
-func (p *AcknowledgeFinishConfigurationPacket) Read(*interfaces.Buffer) {
+func (p *AcknowledgeFinishConfigurationPacket) Read(*common2.Buffer) {
 	// Nothing to read
 }
 
-func (p *AcknowledgeFinishConfigurationPacket) Handle(pc *interfaces.PlayerConnection) {
-	pc.SetState(interfaces.Play)
+func (p *AcknowledgeFinishConfigurationPacket) Handle(pc *common2.PlayerConnection) {
+	pc.SetState(common2.Play)
 
 	packet := &clientbound.LoginPlayPacket{
 		EntityID:            23,

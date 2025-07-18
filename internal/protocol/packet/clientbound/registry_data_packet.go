@@ -1,7 +1,7 @@
 package clientbound
 
 import (
-	"Veloce/internal/interfaces"
+	"Veloce/internal/network/common"
 )
 
 type RegistryDataPacket struct {
@@ -12,7 +12,7 @@ func (p *RegistryDataPacket) ID() int32 {
 	return 0x07
 }
 
-func (p *RegistryDataPacket) Write(buf *interfaces.Buffer) {
+func (p *RegistryDataPacket) Write(buf *common.Buffer) {
 	for i := range p.data {
 		buf.WriteByte(p.data[i])
 	}

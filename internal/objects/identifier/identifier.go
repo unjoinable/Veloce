@@ -18,8 +18,8 @@ const (
 )
 
 var (
-	namespaceRegex = regexp.MustCompile(`^[a-z0-9.\-_]+$`)
-	valueRegex     = regexp.MustCompile(`^[a-z0-9.\-_/]+$`)
+	namespaceRegex = regexp.MustCompile("^[a-z0-9.\\-_]+$")
+	valueRegex     = regexp.MustCompile("^[a-z0-9.\\-_/]+$")
 
 	ErrInvalidNamespace = errors.New("invalid namespace: must contain only lowercase alphanumeric characters, dots, dashes, and underscores")
 	ErrInvalidValue     = errors.New("invalid value: must contain only lowercase alphanumeric characters, dots, dashes, underscores, and slashes")

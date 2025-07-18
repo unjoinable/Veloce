@@ -1,4 +1,4 @@
-package interfaces
+package common
 
 // ConnectionState represents the connection state of a client.
 type ConnectionState int
@@ -24,4 +24,8 @@ type ServerboundPacket interface {
 type ClientboundPacket interface {
 	Packet
 	Write(buf *Buffer)
+}
+
+type PacketFactory interface {
+	CreateServerBound(state ConnectionState, id int32) (ServerboundPacket, bool)
 }

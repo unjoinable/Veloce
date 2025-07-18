@@ -1,7 +1,7 @@
 package serverbound
 
 import (
-	"Veloce/internal/interfaces"
+	common2 "Veloce/internal/network/common"
 	"Veloce/internal/protocol/packet/clientbound"
 	"fmt"
 	"os"
@@ -16,11 +16,11 @@ func (p *ServerBoundKnownPacksPacket) ID() int32 {
 	return 0x07
 }
 
-func (p *ServerBoundKnownPacksPacket) Read(*interfaces.Buffer) {
+func (p *ServerBoundKnownPacksPacket) Read(*common2.Buffer) {
 	// Nothing to read
 }
 
-func (p *ServerBoundKnownPacksPacket) Handle(pc *interfaces.PlayerConnection) {
+func (p *ServerBoundKnownPacksPacket) Handle(pc *common2.PlayerConnection) {
 	for i := 0; i <= 19; i++ {
 		data, err := ReadLineBinFile(i)
 		if err != nil {

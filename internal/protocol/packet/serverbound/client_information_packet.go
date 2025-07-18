@@ -1,7 +1,7 @@
 package serverbound
 
 import (
-	"Veloce/internal/interfaces"
+	common2 "Veloce/internal/network/common"
 )
 
 type ClientInformationPacket struct {
@@ -20,7 +20,7 @@ func (p *ClientInformationPacket) ID() int32 {
 	return 0x00
 }
 
-func (p *ClientInformationPacket) Read(buf *interfaces.Buffer) {
+func (p *ClientInformationPacket) Read(buf *common2.Buffer) {
 	p.locale, _ = buf.ReadString()
 	p.render, _ = buf.ReadByte()
 	p.chatMode, _ = buf.ReadVarInt()
@@ -32,6 +32,6 @@ func (p *ClientInformationPacket) Read(buf *interfaces.Buffer) {
 	p.particle, _ = buf.ReadVarInt()
 }
 
-func (p *ClientInformationPacket) Handle(pc *interfaces.PlayerConnection) {
+func (p *ClientInformationPacket) Handle(pc *common2.PlayerConnection) {
 	// Nothing to handle
 }

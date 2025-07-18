@@ -1,4 +1,4 @@
-package interfaces
+package common
 
 import (
 	"fmt"
@@ -97,29 +97,4 @@ func (pc *PlayerConnection) Close() error {
 		return err
 	}
 	return nil
-}
-
-// GetRemoteAddr returns the remote address of the connection
-func (pc *PlayerConnection) GetRemoteAddr() net.Addr {
-	pc.mu.RLock()
-	defer pc.mu.RUnlock()
-
-	if pc.conn != nil {
-		return pc.conn.RemoteAddr()
-	}
-	return nil
-}
-
-// GetConn returns the underlying net.Conn for direct access
-func (pc *PlayerConnection) GetConn() net.Conn {
-	pc.mu.RLock()
-	defer pc.mu.RUnlock()
-	return pc.conn
-}
-
-// IsConnected checks if the connection is still active
-func (pc *PlayerConnection) IsConnected() bool {
-	pc.mu.RLock()
-	defer pc.mu.RUnlock()
-	return pc.conn != nil
 }

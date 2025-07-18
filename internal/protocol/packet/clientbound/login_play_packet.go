@@ -1,7 +1,7 @@
 package clientbound
 
 import (
-	"Veloce/internal/interfaces"
+	"Veloce/internal/network/common"
 )
 
 type LoginPlayPacket struct {
@@ -33,7 +33,7 @@ func (p *LoginPlayPacket) ID() int32 {
 	return 0x2B
 }
 
-func (p *LoginPlayPacket) Write(buf *interfaces.Buffer) {
+func (p *LoginPlayPacket) Write(buf *common.Buffer) {
 	buf.WriteInt32(p.EntityID)
 	buf.WriteBool(p.IsHardcore)
 
