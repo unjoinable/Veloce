@@ -1,9 +1,8 @@
 package server
 
 import (
-	"Veloce/internal/handler"
-	"Veloce/internal/network"
 	"Veloce/internal/interfaces"
+	"Veloce/internal/network"
 	"fmt"
 	"io"
 	"net"
@@ -11,20 +10,24 @@ import (
 	"time"
 )
 
+const (
+	MaxPacketLength = 2097151 // Maximum allowed packet length (2^21 - 1)
+)
+
 // TCPServer represents a simplified TCP server
 type TCPServer struct {
-	listener    net.Listener
-	addr        string
-	running     bool
-	connections sync.Map
-	dispatcher  *handler.PacketDispatcher
+	listener       net.Listener
+	addr           string
+	running        bool
+	connections    sync.Map
+	packetRegistry *network.PacketRegistry
 }
 
 // NewTCPServer creates a new simplified TCP server
-func NewTCPServer(addr string, dispatcher *handler.PacketDispatcher) *TCPServer {
+func NewTCPServer(addr string, packetRegistry *network.PacketRegistry) *TCPServer {
 	return &TCPServer{
-		addr:       addr,
-		dispatcher: dispatcher,
+		addr:           addr,
+		packetRegistry: packetRegistry,
 	}
 }
 
@@ -56,13 +59,11 @@ func (s *TCPServer) Shutdown() error {
 	s.running = false
 
 	if s.listener != nil {
-	_:
 		s.listener.Close()
 	}
 
 	s.connections.Range(func(key, value interface{}) bool {
-		if pc, ok := value.(*network.PlayerConnection); ok {
-		_:
+		if pc, ok := value.(*interfaces.PlayerConnection); ok {
 			pc.Close()
 		}
 		return true
@@ -71,63 +72,73 @@ func (s *TCPServer) Shutdown() error {
 	return nil
 }
 
-func (s *TCPServer) readRawPacket(conn net.Conn) ([]byte, error) {
+func (s *TCPServer) readPacket(conn net.Conn) (*interfaces.Buffer, error) {
 	if err := conn.SetReadDeadline(time.Now().Add(30 * time.Second)); err != nil {
 		return nil, fmt.Errorf("failed to set read deadline: %w", err)
 	}
 
-	var (
-		length     int
-		multiplier = 1
-		value      = 0
-		buf        [1]byte
-	)
+	// Create a temporary buffer to read the VarInt length
+	tempBuf := make([]byte, 5) // VarInt can be at most 5 bytes
+	bytesRead := 0
 
+	// Read VarInt byte by byte
 	for i := 0; i < 5; i++ {
-		if _, err := conn.Read(buf[:]); err != nil {
+		if _, err := conn.Read(tempBuf[bytesRead : bytesRead+1]); err != nil {
 			return nil, fmt.Errorf("reading VarInt: %w", err)
 		}
-		b := buf[0]
-		value |= int(b&0x7F) * multiplier
-		if b&0x80 == 0 {
-			length = value
+		bytesRead++
+
+		// Check if this is the last byte of the VarInt (MSB is 0)
+		if tempBuf[bytesRead-1]&0x80 == 0 {
 			break
 		}
-		multiplier <<= 7
 	}
 
-	if length <= 0 || length > 2097151 {
+	// Create buffer from the VarInt bytes and read the length
+	varintBuf := interfaces.NewBuffer(tempBuf[:bytesRead])
+	length, err := varintBuf.ReadVarInt()
+	if err != nil {
+		return nil, fmt.Errorf("failed to read packet length: %w", err)
+	}
+
+	if length <= 0 || length > MaxPacketLength {
 		return nil, fmt.Errorf("invalid packet length: %d", length)
 	}
 
+	// Read the actual packet data
 	packetData := make([]byte, length)
 	if _, err := io.ReadFull(conn, packetData); err != nil {
 		return nil, fmt.Errorf("reading packet data: %w", err)
 	}
 
-	return packetData, nil
+	// Return a buffer containing the packet data
+	return interfaces.NewBuffer(packetData), nil
 }
 
 func (s *TCPServer) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
-	pc := network.NewPlayerConnection(conn, s.dispatcher)
+	pc := interfaces.NewPlayerConnection(conn)
 	connID := conn.RemoteAddr().String()
 	s.connections.Store(connID, pc)
 	defer s.connections.Delete(connID)
 
 	for s.running {
-		rawPacket, err := s.readRawPacket(conn)
+		packetBuf, err := s.readPacket(conn)
+		if err != nil {
+			fmt.Printf("Error reading packet from %s: %v\n", conn.RemoteAddr(), err)
+			continue
+		}
+
+		currentState := pc.GetState()
+		packetId, err := packetBuf.ReadVarInt()
 
 		if err != nil {
-			continue // Skip if invalid packet
+			fmt.Printf("failed to read packet ID: %s", err)
+			continue
 		}
 
-		buf := interfaces.NewBuffer(rawPacket)
-
-		if err := pc.HandlePacket(buf); err != nil {
-			fmt.Printf("Skipping Packet! Error handling packet from %s: %v\n", conn.RemoteAddr(), err)
-			continue // Skip if we haven't registered it
-		}
+		packet, _ := s.packetRegistry.GetServerBoundPacket(currentState, packetId)
+		packet.Handle(pc)
 	}
 }

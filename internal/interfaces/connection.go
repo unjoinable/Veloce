@@ -1,33 +1,125 @@
 package interfaces
 
-// ConnectionState represents the connection state of a client.
-type ConnectionState int
-
-const (
-	Handshake     ConnectionState = iota // Default state before any packets is received.
-	Status                               // Client declares Status intent during handshake.
-	Login                                // Client declares Login intent during handshake.
-	Configuration                        // Client acknowledged login and is now configuring the game.
-	Play                                 // Client (re-)finished configuration.
+import (
+	"fmt"
+	"net"
+	"sync"
+	"time"
 )
 
-type Packet interface {
-	ID() int32
+// PlayerConnection represents a client connection
+type PlayerConnection struct {
+	conn  net.Conn
+	state ConnectionState
+	mu    sync.RWMutex
 }
 
-type ServerboundPacket interface {
-	Packet
-	Read(buf *Buffer)
+// NewPlayerConnection creates a new player connection
+func NewPlayerConnection(conn net.Conn) *PlayerConnection {
+	return &PlayerConnection{
+		conn:  conn,
+		state: Handshake,
+	}
 }
 
-type ClientboundPacket interface {
-	Packet
-	Write(buf *Buffer)
+// SendRaw to send raw bytes
+func (pc *PlayerConnection) SendRaw(data []byte) error {
+	pc.mu.RLock()
+	conn := pc.conn
+	pc.mu.RUnlock()
+
+	fmt.Println("sending raw data")
+
+	if conn == nil {
+		return fmt.Errorf("connection is closed")
+	}
+
+	if err := conn.SetWriteDeadline(time.Now().Add(30 * time.Second)); err != nil {
+		return err
+	}
+
+	_, err := conn.Write(data)
+	return err
 }
 
-type Connection interface {
-	SetState(s ConnectionState)
-	SendPacket(p ClientboundPacket) error
-	SendRaw(data []byte) error
-	// Add other methods from PlayerConnection that handlers need to call
+// SendPacket sends a packet to the client
+func (pc *PlayerConnection) SendPacket(p ClientboundPacket) error {
+	pc.mu.RLock()
+	conn := pc.conn
+	pc.mu.RUnlock()
+
+	if conn == nil {
+		return fmt.Errorf("connection is closed")
+	}
+
+	if err := conn.SetWriteDeadline(time.Now().Add(30 * time.Second)); err != nil {
+		return err
+	}
+
+	buf := NewBuffer(nil)
+	p.Write(buf)
+
+	header := NewBuffer(nil)
+	header.WriteVarInt(int32(buf.Len() + 1))
+	header.WriteVarInt(p.ID())
+
+	// Combine: header + payload
+	final := NewBuffer(nil)
+	final.Write(header.Bytes())
+	final.Write(buf.Bytes())
+
+	_, err := conn.Write(final.Bytes())
+	return err
+}
+
+// SetState updates the connection state
+func (pc *PlayerConnection) SetState(s ConnectionState) {
+	pc.mu.Lock()
+	defer pc.mu.Unlock()
+	pc.state = s
+}
+
+// GetState returns the current connection state
+func (pc *PlayerConnection) GetState() ConnectionState {
+	pc.mu.RLock()
+	defer pc.mu.RUnlock()
+	return pc.state
+}
+
+// Close closes the player connection
+func (pc *PlayerConnection) Close() error {
+	pc.mu.Lock()
+	defer pc.mu.Unlock()
+
+	if pc.conn != nil {
+		err := pc.conn.Close()
+		pc.conn = nil
+		return err
+	}
+	return nil
+}
+
+// GetRemoteAddr returns the remote address of the connection
+func (pc *PlayerConnection) GetRemoteAddr() net.Addr {
+	pc.mu.RLock()
+	defer pc.mu.RUnlock()
+
+	if pc.conn != nil {
+		return pc.conn.RemoteAddr()
+	}
+	return nil
+}
+
+// GetConn returns the underlying net.Conn for direct access
+func (pc *PlayerConnection) GetConn() net.Conn {
+	pc.mu.RLock()
+	defer pc.mu.RUnlock()
+	return pc.conn
+}
+
+// IsConnected checks if the connection is still active
+func (pc *PlayerConnection) IsConnected() bool {
+	pc.mu.RLock()
+	defer pc.mu.RUnlock()
+	return pc.conn != nil
 }
