@@ -1,7 +1,7 @@
 package serverbound
 
 import (
-	common2 "Veloce/internal/network/common"
+	"Veloce/internal/network/common"
 )
 
 type HandshakePacket struct {
@@ -15,13 +15,13 @@ func (h *HandshakePacket) ID() int32 {
 	return 0x00
 }
 
-func (h *HandshakePacket) Read(buf *common2.Buffer) {
+func (h *HandshakePacket) Read(buf *common.Buffer) {
 	h.ProtocolVersion, _ = buf.ReadVarInt()
 	h.ServerAddress, _ = buf.ReadString()
 	h.ServerPort, _ = buf.ReadUint16()
 	h.NextState, _ = buf.ReadVarInt()
 }
 
-func (h *HandshakePacket) Handle(pc *common2.PlayerConnection) {
-	pc.SetState(common2.ConnectionState(h.NextState))
+func (h *HandshakePacket) Handle(pc *common.PlayerConnection) {
+	pc.SetState(common.ConnectionState(h.NextState))
 }
