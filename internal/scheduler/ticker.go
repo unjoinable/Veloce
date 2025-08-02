@@ -12,13 +12,13 @@ const (
 
 // Ticker is responsible for driving the game's tick-based updates.
 type Ticker struct {
-	scheduler Scheduler
+	scheduler *Scheduler
 	ticker    *time.Ticker
 	running   bool
 }
 
 // NewTicker creates a new Ticker instance.
-func NewTicker(s Scheduler) *Ticker {
+func NewTicker(s *Scheduler) *Ticker {
 	return &Ticker{
 		scheduler: s,
 		running:   false,

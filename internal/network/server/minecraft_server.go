@@ -2,6 +2,7 @@ package server
 
 import (
 	"Veloce/internal/entity/player"
+	"Veloce/internal/event"
 	"Veloce/internal/network"
 	"Veloce/internal/protocol"
 	"Veloce/internal/scheduler"
@@ -27,8 +28,9 @@ type MinecraftServer struct {
 	brandName   string
 
 	packetRegistry *network.PacketRegistry
-	scheduler      scheduler.Scheduler
+	scheduler      *scheduler.Scheduler
 	ticker         *scheduler.Ticker
+	eventNode      *event.Node
 }
 
 func NewMinecraftServer() *MinecraftServer {
@@ -41,6 +43,7 @@ func NewMinecraftServer() *MinecraftServer {
 		packetRegistry: registry,
 		scheduler:      schedule,
 		ticker:         scheduler.NewTicker(schedule),
+		eventNode:      event.NewNode(),
 	}
 }
 
@@ -69,6 +72,12 @@ func (s *MinecraftServer) GetBrand() string {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.brandName
+}
+
+func (s *MinecraftServer) GetEventNode() *event.Node {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.eventNode
 }
 
 func (s *MinecraftServer) Shutdown() {
