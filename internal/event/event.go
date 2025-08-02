@@ -1,34 +1,21 @@
 package event
 
-import (
-	"Veloce/internal/entity/player"
-)
+import "Veloce/internal/entity/player"
 
-// Event is a marker interface for all events
+// Event represents a generic event type.
 type Event interface {
-	IsEvent() bool
+    IsEvent()
 }
 
-// CancellableEvent represents an event that can be cancelled
+// CancellableEvent is an event that can be cancelled.
 type CancellableEvent interface {
-	Event
-	IsCancelled() bool
-	SetCancelled(cancel bool)
+    Event
+    IsCancelled() bool
+    SetCancelled(isCancelled bool)
 }
 
-// PlayerEvent links an event to a specific player
+// PlayerEvent is an event associated with a specific player.
 type PlayerEvent interface {
-	Event
-	GetPlayer() *player.Player
-}
-
-// Global Event Handler
-var globalEventHandler = NewNode("global")
-
-func GetGlobalEventHandler() *EventNode {
-	return globalEventHandler
-}
-
-func GetGlobalHandle[T Event]() *ListenerHandle[T] {
-	return GetHandle[T](globalEventHandler)
+    Event
+    GetPlayer() player.Player
 }

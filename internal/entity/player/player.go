@@ -1,7 +1,7 @@
 package player
 
 import (
-	common2 "Veloce/internal/network/common"
+	"Veloce/internal/network/common"
 	"Veloce/internal/objects/coordinate"
 	"github.com/google/uuid"
 	"sync"
@@ -10,7 +10,7 @@ import (
 type Player struct {
 	//Internals
 	remoteAddr  string
-	pc          common2.PlayerConnection
+	pc          common.PlayerConnection
 	gameProfile GameProfile
 	mu          sync.RWMutex
 
@@ -22,7 +22,7 @@ type Player struct {
 	velocity    coordinate.Vector
 }
 
-func (p *Player) SendPacket(packet common2.ClientboundPacket) error {
+func (p *Player) SendPacket(packet common.ClientboundPacket) error {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	err := p.pc.SendPacket(packet)
