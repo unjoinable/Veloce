@@ -49,23 +49,25 @@ func (n *Node) Register(event Event, listener Listener) {
     n.listeners[eventType] = append(n.listeners[eventType], listener)
 }
 
-// Dispatch sends an event to all listeners of this node.
-// If the event is cancellable and gets cancelled, propagation stops.
-// Otherwise, the event bubbles up to the parent node.
-func (n *Node) Dispatch(event Event) {
+// CallEvent sends an event to all listeners on this node and then bubbles it up to the parent.
+func (n *Node) CallEvent(event Event) {
     eventType := reflect.TypeOf(event)
 
     if listeners, ok := n.listeners[eventType]; ok {
         for _, listener := range listeners {
             listener(event)
-            if ce, ok := event.(CancellableEvent); ok && ce.IsCancelled() {
-                return // stop propagation
-            }
         }
     }
 
-    // Bubble up to parent node
     if n.parent != nil {
-        n.parent.Dispatch(event)
+        n.parent.CallEvent(event)
+    }
+}
+
+// CallCancelledEvent dispatches a cancellable event and calls successCallback if it's not cancelled.
+func (n *Node) CallCancelledEvent(event CancellableEvent, successCallback func()) {
+    n.CallEvent(event)
+    if !event.IsCancelled() {
+        successCallback()
     }
 }
